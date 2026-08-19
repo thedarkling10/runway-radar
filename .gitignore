@@ -1,0 +1,33 @@
+# Collected runway images -- copyrighted editorial/brand content, local-only, never committed
+data/raw/**
+!data/raw/.gitkeep
+
+# Personal learning notes -- for the author's own understanding, not part of the deliverable
+docs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.python-version.local
+
+# uv
+uv.lock.local
+
+# Env / secrets
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/secrets.toml
