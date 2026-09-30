@@ -17,7 +17,6 @@ pixel clustering (see color_palette.py).
 
 from __future__ import annotations
 
-# Reusable prompt templates; each is filled with a label description.
 PROMPT_TEMPLATES = [
     "a photo of a runway look with {}",
     "a fashion model wearing {}",
@@ -54,6 +53,10 @@ SILHOUETTE = {
         "a maxi-length, floor-sweeping hemline",
         "a long flowing gown or long coat",
     ],
+    "casual_relaxed": [
+        "a casual, relaxed silhouette",
+        "an easy everyday fit with no dramatic shaping",
+    ],
 }
 
 NECKLINE_COLLAR = {
@@ -76,6 +79,14 @@ NECKLINE_COLLAR = {
     "turtleneck": [
         "a turtleneck",
         "a high close-fitting neck covering the throat",
+    ],
+    "classic_shirt_collar": [
+        "a classic pointed shirt collar",
+        "a plain button-up shirt collar",
+    ],
+    "crew_neckline": [
+        "a plain crew neckline",
+        "a simple round collarless neckline",
     ],
 }
 
@@ -104,6 +115,14 @@ FABRIC_TEXTURE = {
         "leather material",
         "a leather jacket or leather trousers",
     ],
+    "silk": [
+        "silk fabric",
+        "a smooth, lightweight silky material",
+    ],
+    "cotton_jersey": [
+        "cotton or jersey fabric",
+        "a simple everyday cotton material",
+    ],
 }
 
 PATTERN = {
@@ -131,6 +150,14 @@ PATTERN = {
         "a psychedelic or geometric print",
         "a bold abstract geometric pattern",
     ],
+    "graphic_print": [
+        "a graphic print",
+        "an illustrated or text-based graphic design",
+    ],
+    "solid_no_pattern": [
+        "a solid, unpatterned garment",
+        "a single plain color with no print",
+    ],
 }
 
 EMBELLISHMENT = {
@@ -157,6 +184,10 @@ EMBELLISHMENT = {
     "layered_jewelry": [
         "layered statement jewelry",
         "multiple necklaces or brooches worn together",
+    ],
+    "oversized_eyewear": [
+        "oversized statement glasses or sunglasses",
+        "large decorative eyewear",
     ],
 }
 

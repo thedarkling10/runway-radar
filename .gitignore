@@ -1,8 +1,8 @@
-# Collected runway images -- copyrighted editorial/brand content, local-only, never committed
+# collected runway images - copyrighted editorial/brand content, local-only, never committed
 data/raw/**
 !data/raw/.gitkeep
 
-# Personal learning notes -- for the author's own understanding, not part of the deliverable
+# personal notes to document the bugs I faced during development
 docs/
 
 # Python

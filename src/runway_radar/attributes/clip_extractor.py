@@ -23,6 +23,7 @@ from PIL import Image, ImageOps
 from torchvision import transforms
 
 from runway_radar.acquisition.register import RAW_DIR, read_metadata, season_slug
+from runway_radar.attributes.image_utils import crop_letterbox
 from runway_radar.attributes.vocab import ATTRIBUTE_AXES, build_prompts, iter_labels
 
 # "-quickgelu" matches the activation function the original OpenAI weights
@@ -61,7 +62,7 @@ def load_model(device: str = "cpu"):
     preprocess = build_preprocess(image_size, open_clip.OPENAI_DATASET_MEAN, open_clip.OPENAI_DATASET_STD)
     return model, tokenizer, preprocess
 
-# text encoder 
+# text encoder
 @torch.no_grad()
 def build_label_embeddings(model, tokenizer, device: str = "cpu") -> dict[str, dict[str, torch.Tensor]]:
     """For each attribute axis, embed every label as the L2-normalized
@@ -78,24 +79,63 @@ def build_label_embeddings(model, tokenizer, device: str = "cpu") -> dict[str, d
             label_embeddings[axis][label] = mean_embed / mean_embed.norm()
     return label_embeddings
 
-# image encoder using ViT design (vision transformers)
-@torch.no_grad()
-def classify_image(
-    image_path: Path, model, preprocess, label_embeddings, device: str = "cpu"
-) -> dict[str, tuple[str, float]]:
-    image = Image.open(image_path).convert("RGB")
-    tensor = preprocess(image).unsqueeze(0).to(device)
-    image_embed = model.encode_image(tensor)
-    image_embed = image_embed / image_embed.norm(dim=-1, keepdim=True)
 
+@torch.no_grad()
+def compute_image_embeddings(rows, model, preprocess, device: str = "cpu") -> dict[str, torch.Tensor]:
+    """Embed every look once, up front. Calibration needs every image's
+    embedding available before any label can be picked, so this replaces
+    the old one-image-at-a-time encoding inside classify_image."""
+    image_embeddings: dict[str, torch.Tensor] = {}
+    for row in rows:
+        path = RAW_DIR / season_slug(row["season"], row["year"]) / row["line"] / row["image_filename"]
+        image = crop_letterbox(Image.open(path).convert("RGB"))
+        tensor = preprocess(image).unsqueeze(0).to(device)
+        embed = model.encode_image(tensor)
+        embed = embed / embed.norm(dim=-1, keepdim=True)
+        image_embeddings[row["look_id"]] = embed.squeeze(0)
+    return image_embeddings
+
+
+def compute_label_baselines(
+    image_embeddings: dict[str, torch.Tensor], label_embeddings: dict[str, dict[str, torch.Tensor]]
+) -> dict[str, dict[str, float]]:
+    """For each axis, each label's baseline is its average raw similarity
+    across the WHOLE dataset -- how close it sits to a typical image,
+    regardless of content. Subtracting this later is what corrects the
+    hubness problem (see docs/problems_and_fixes.md): some labels sit
+    generically close to almost every image in a stylistically narrow
+    dataset like ours, and would otherwise win by default."""
+    image_matrix = torch.stack(list(image_embeddings.values()))  # (N, 512)
+
+    label_baselines: dict[str, dict[str, float]] = {}
+    for axis, labels in label_embeddings.items():
+        label_names = list(labels.keys())
+        label_matrix = torch.stack([labels[name] for name in label_names])  # (K, 512)
+        sims = image_matrix @ label_matrix.T  # (N, K) -- every image x every label
+        baseline_per_label = sims.mean(dim=0)  # (K,) -- averaged down each column
+        label_baselines[axis] = {
+            name: baseline_per_label[i].item() for i, name in enumerate(label_names)
+        }
+    return label_baselines
+
+
+# image encoder using ViT design (vision transformers)
+def classify_image(
+    image_embed: torch.Tensor,
+    model,
+    label_embeddings: dict[str, dict[str, torch.Tensor]],
+    label_baselines: dict[str, dict[str, float]],
+) -> dict[str, tuple[str, float]]:
     logit_scale = model.logit_scale.exp()
 
     results = {}
     for axis, labels in label_embeddings.items():
         label_names = list(labels.keys())
         label_matrix = torch.stack([labels[name] for name in label_names])
-        sims = (image_embed @ label_matrix.T).squeeze(0)
-        probs = (sims * logit_scale).softmax(dim=0)
+        sims = image_embed @ label_matrix.T
+        baseline = torch.tensor([label_baselines[axis][name] for name in label_names])
+        adjusted = sims - baseline
+        probs = (adjusted * logit_scale).softmax(dim=0)
         best_idx = probs.argmax().item()
         results[axis] = (label_names[best_idx], round(probs[best_idx].item(), 4))
     return results
@@ -110,12 +150,17 @@ def run_extraction():
     label_embeddings = build_label_embeddings(model, tokenizer, device)
 
     rows = read_metadata()
-    print(f"Classifying {len(rows)} looks...")
+    print(f"Embedding {len(rows)} looks...")
+    image_embeddings = compute_image_embeddings(rows, model, preprocess, device)
 
+    print("Computing per-label calibration baselines...")
+    label_baselines = compute_label_baselines(image_embeddings, label_embeddings)
+
+    print(f"Classifying {len(rows)} looks...")
     output_rows = []
     for i, row in enumerate(rows, start=1):
-        image_path = RAW_DIR / season_slug(row["season"], row["year"]) / row["line"] / row["image_filename"]
-        predictions = classify_image(image_path, model, preprocess, label_embeddings, device)
+        image_embed = image_embeddings[row["look_id"]]
+        predictions = classify_image(image_embed, model, label_embeddings, label_baselines)
         for axis, (label, confidence) in predictions.items():
             output_rows.append(
                 {
