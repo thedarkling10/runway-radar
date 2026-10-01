@@ -2,9 +2,7 @@
 
 Deliberately simple: 16 seasons is a short time series, and anything more
 sophisticated than a linear fit would be reading precision into the data
-that isn't really there. See docs/problems_and_fixes.md-style reasoning --
-matching the method's complexity to what the data can actually support is
-the point, not a limitation to apologize for.
+that isn't really there. 
 """
 
 from __future__ import annotations
@@ -18,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 PREVALENCE_CSV = REPO_ROOT / "data" / "processed" / "seasonal_prevalence.csv"
 OUTPUT_CSV = REPO_ROOT / "data" / "processed" / "trend_summary.csv"
 
-# A relaxed threshold, not the conventional 0.05 -- with only 16 points per
+# A relaxed threshold, not the conventional 0.05 with only 16 points per
 # series, requiring p<0.05 would label almost everything "stable" even when
 # there's a real, visible trend. 0.1 is a deliberate judgment call to keep
 # from being falsely conservative at this sample size; it should be read as

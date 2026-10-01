@@ -20,7 +20,7 @@ ATTRIBUTES_CSV = REPO_ROOT / "data" / "processed" / "attributes.csv"
 COLORS_CSV = REPO_ROOT / "data" / "processed" / "colors.csv"
 OUTPUT_CSV = REPO_ROOT / "data" / "processed" / "seasonal_prevalence.csv"
 
-# The full, fixed label set per axis -- needed to fill in explicit zeros for
+# The full, fixed label set per axis needed to fill in explicit zeros for
 # (season, line, axis, label) combinations where nothing was predicted, so a
 # season a label simply never appeared in isn't silently dropped from its
 # own trend line instead of counting as a real zero.

@@ -3,7 +3,7 @@
 Images are collected by hand from Gucci's official show archive/channels
 (see README's "Legal & sourcing notes") and dropped into
 ``data/raw/{season_slug}/``. This module just keeps the metadata CSV in
-sync with what's actually on disk -- it does not download or scrape
+sync with what's actually on disk. It does not download or scrape
 anything.
 """
 
