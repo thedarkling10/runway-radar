@@ -1,13 +1,13 @@
 # Runway Radar 🐍✨
 
+**[Live demo →](https://runway-radar.streamlit.app/)** *(hosted on Streamlit Community Cloud's free tier — the app sleeps after inactivity, so the first load may take ~30 seconds to wake up)*
+
 A trend-forecasting dashboard that treats one designer's runway history as a
 time series: **Gucci under Alessandro Michele (2015–2022)**. It detects
 visual attributes (silhouette, embellishment, print, texture, color) in
 runway looks season by season, and tracks how those attributes rise, peak,
 and fade — in the same spirit as commercial trend-forecasting tools like
 Heuritech or Stylumia, built as a solo portfolio project.
-
-> Status: 🚧 early scaffold — see [Roadmap](#roadmap).
 
 ## Why this project
 
@@ -34,8 +34,8 @@ around all of it.
    "next season" projection is framed as trend extrapolation, not prediction.
 4. **Dashboard**: Streamlit + Plotly, deployed on Streamlit Community Cloud.
 
-Full methodology and validation results will be filled in as each phase
-lands — see `src/runway_radar/validation/labeling_notes.md`.
+Full methodology and validation results are documented in
+`src/runway_radar/validation/labeling_notes.md`.
 
 ## Legal & sourcing notes
 
@@ -82,13 +82,3 @@ notebooks/     # exploratory analysis
 uv sync
 uv run streamlit run src/runway_radar/app/streamlit_app.py
 ```
-
-## Roadmap
-
-- [ ] Phase 0 — validate manual data collection on 2–3 seasons
-- [ ] Phase 1 — full image collection + metadata across ~14 seasons
-- [ ] Phase 2 — CLIP zero-shot attribute pipeline + hand-label validation
-- [ ] Phase 3 — trend aggregation + regression/smoothing
-- [ ] Phase 4 — Streamlit dashboard
-- [ ] Phase 5 — polish, deploy, writeup
-- [ ] Phase 6 (stretch) — CLIP-embedding linear probe vs. zero-shot
