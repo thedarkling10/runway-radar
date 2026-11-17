@@ -45,3 +45,9 @@ def test_prevalence_with_filter():
     response = client.get("/prevalence?axis=pattern&line=mens&label=floral_print")
     assert response.status_code == 200
     assert all(row["axis"] == "pattern" and row["line"] == "mens" and row["label"] == "floral_print" for row in response.json())
+    assert len(response.json()) == 16
+
+def test_prevalence_is_ordered_by_season():
+    response = client.get("/prevalence?axis=pattern&line=mens&label=floral_print")
+    indexes = [row["season_index"] for row in response.json()]
+    assert indexes == sorted(indexes)
